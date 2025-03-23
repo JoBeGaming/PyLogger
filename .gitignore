@@ -177,6 +177,3 @@ cython_debug/
 # Logs (already ignored via the Django ignores, but incase they are removed)
 *.log
 logs/
-
-# GitHub files
-.gitkeep
