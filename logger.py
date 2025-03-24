@@ -1,6 +1,5 @@
 # Logger
 
-import time
 if __name__ == "__main__":
   raise RuntimeError("`logger.py` is not meant to be run unless imported")
 
