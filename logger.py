@@ -33,7 +33,7 @@ class logger():
     self.newEntry(f"Initiated file as {self.LOG_PATH}", "Info")
   
   def newEntry(self, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug") -> None:
-    """Log to existing log, or create a new on and log to that one if needed."""
+    """Log to existing log, or create a new one and log to that one if needed."""
     try:
       with open(self.LOG_PATH, "a", errors="strict") as file:
         file.write(f"{time.strftime("%H:%M:%S", time.localtime())} [{level}]: {msg}\n")
