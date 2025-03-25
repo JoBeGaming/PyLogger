@@ -65,3 +65,16 @@ class logger():
     self.newEntry(f"TB Lineno: {obj.__traceback__.tb_lineno}", "Error")
     self.newEntry(f"TB Next: {obj.__traceback__.tb_next}", "Error")
     self.newEntry(f"Exiting Program", "Fatal")
+    
+  def debug(self, msg: str) -> None:
+    self.newEntry(msg, level="Debug")
+    
+  def info(self, msg: str) -> None:
+    self.newEntry(msg, level="Info")
+    
+  def error(self, msg: str) -> None:
+    self.newEntry(msg, level="Error")
+    
+  def fatal(self, error: object, msg: str) -> None:
+    self.newEntry(f"{error}: {msg}", "Fatal")
+    raise error
