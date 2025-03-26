@@ -22,7 +22,7 @@ Classes:
   * Fatal: Append the `message` to the current log, using the Fatal Level, then exit.
 """ 
 
-__all__: str = [
+__all__: list[str] = [
   "logError",
   "get_path"
   "logger"
