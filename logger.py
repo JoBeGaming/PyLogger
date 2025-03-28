@@ -1,6 +1,5 @@
 # Logger
 
-import time
 if __name__ == "__main__":
   raise RuntimeError("`logger.py` is not meant to be run unless imported")
 
@@ -23,7 +22,7 @@ def get_path() -> str:
   
 class logger():
   
-  def __init__(self, newPath: str=None) -> None: 
+  def __init__(self, newPath: str | None=None) -> None: 
     """Initiate a new log at `logs/`, except another path is given"""
     if newPath is None:
       self.LOG_PATH = rf"logs/{get_path()}"
@@ -34,7 +33,7 @@ class logger():
     self.newEntry(f"Initiated file as {self.LOG_PATH}", "Info")
   
   def newEntry(self, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug") -> None:
-    """Log to existing log, or create a new on and log to that one if needed."""
+    """Log to existing log, or create a new one and log to that one if needed."""
     try:
       with open(self.LOG_PATH, "a", errors="strict") as file:
         file.write(f"{time.strftime("%H:%M:%S", time.localtime())} [{level}]: {msg}\n")
@@ -62,7 +61,9 @@ class logger():
   def extensiveError(self, obj) -> None:
     self.newEntry(f"{obj}, traceback to {obj.__traceback__.tb_frame}", "Error")
     self.newEntry(f"Traceback object at {obj.__traceback__}", "Error")
-    self.newEntry(f"Line: {obj.__traceback__.tb_lineno}", "Error")
+    self.newEntry(f"TB Lasti: {obj.__traceback__.tb_lasti}", "Error")
+    self.newEntry(f"TB Lineno: {obj.__traceback__.tb_lineno}", "Error")
+    self.newEntry(f"TB Next: {obj.__traceback__.tb_next}", "Error")
     self.newEntry(f"Exiting Program", "Fatal")
     
   def debug(self, msg: str) -> None:
@@ -74,6 +75,6 @@ class logger():
   def error(self, msg: str) -> None:
     self.newEntry(msg, level="Error")
     
-  def fatal(self, error: object, msg: str) -> None:
+  def fatal(self, error: Exception, msg: str) -> None:
     self.newEntry(f"{error}: {msg}", "Fatal")
     raise error
