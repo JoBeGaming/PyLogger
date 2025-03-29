@@ -7,6 +7,7 @@ from datetime import datetime
 from time import time
 from pathlib import Path
 from typing import Literal
+from os import path
 
 class logError(Exception):
   """Base Class for all logging related Errors."""
@@ -19,17 +20,19 @@ def get_path() -> str:
       return get_path()
   except FileNotFoundError:
     return f"log_{ct}.log"
-  
+
 class logger():
   
   def __init__(self, newPath: str | None=None) -> None: 
     """Initiate a new log at `logs/`, except another path is given"""
     if newPath is None:
-      self.LOG_PATH = rf"logs/{get_path()}"
-    else: 
-      self.LOG_PATH = f"{newPath}.log"
-    with open(self.LOG_PATH, "x", errors="strict"):
-      pass
+      newPath = rf"logs/{get_path()}"
+    self.LOG_PATH = f"{newPath}.log"
+    try:  
+      with open(self.LOG_PATH, "x", errors="strict"):
+        pass
+    except FileNotFoundError:
+      self.__init__(rf"{path.abspath(__file__).replace(r"\\", "/").removesuffix("logger.py")}/logs/{get_path()}")
     self.newEntry(f"Initiated file as {self.LOG_PATH}", "Info")
   
   def newEntry(self, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug") -> None:
