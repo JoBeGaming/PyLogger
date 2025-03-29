@@ -18,8 +18,7 @@ def get_path() -> str:
       file.close()
       return get_path()
   except FileNotFoundError:
-    return f"latest.log"
-  return f"log_{ct}.log"
+    return f"log_{ct}.log"
   
 class logger():
   
