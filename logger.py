@@ -6,7 +6,7 @@ if __name__ == "__main__":
 from datetime import datetime
 from time import time
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Never
 from os import path
 
 class logError(Exception):
@@ -32,15 +32,18 @@ class logger():
       with open(self.LOG_PATH, "x", errors="strict"):
         pass
     except FileNotFoundError:
-      self.__init__(rf"{path.abspath(__file__).replace(r"\\", "/").removesuffix("logger.py")}/logs/{get_path()}")
-    self.newEntry(f"Initiated file as {self.LOG_PATH}", "Info")
+      backslash = "\\"
+      self.__init__(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
+    self.newEntry(f"Initiated file as {self.LOG_PATH}", level="Info")
   
-  def newEntry(self, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug") -> None:
+  def newEntry(self, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug", *, _exit: bool=False) -> None:
     """Log to existing log, or create a new one and log to that one if needed."""
     try:
       with open(self.LOG_PATH, "a", errors="strict") as file:
         now = datetime.now()
         file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
+        if _exit:
+          exit(f"{msg}. Full log at {self.currentPath()}")
     except NameError:
       self.__init__()
       self.newEntry(msg, level)
@@ -63,12 +66,12 @@ class logger():
     self.__init__(newPath)
             
   def extensiveError(self, obj) -> None:
-    self.newEntry(f"{obj}, traceback to {obj.__traceback__.tb_frame}", "Error")
-    self.newEntry(f"Traceback object at {obj.__traceback__}", "Error")
-    self.newEntry(f"TB Lasti: {obj.__traceback__.tb_lasti}", "Error")
-    self.newEntry(f"TB Lineno: {obj.__traceback__.tb_lineno}", "Error")
-    self.newEntry(f"TB Next: {obj.__traceback__.tb_next}", "Error")
-    self.newEntry(f"Exiting Program", "Fatal")
+    self.newEntry(f"{obj}, traceback to {obj.__traceback__.tb_frame}", level="Error")
+    self.newEntry(f"Traceback object at {obj.__traceback__}", level="Error")
+    self.newEntry(f"TB Lasti: {obj.__traceback__.tb_lasti}", level="Error")
+    self.newEntry(f"TB Lineno: {obj.__traceback__.tb_lineno}", level="Error")
+    self.newEntry(f"TB Next: {obj.__traceback__.tb_next}", level="Error")
+    self.newEntry(f"Exiting Program", level="Fatal")
     
   def debug(self, msg: str) -> None:
     self.newEntry(msg, level="Debug")
@@ -79,6 +82,9 @@ class logger():
   def error(self, msg: str) -> None:
     self.newEntry(msg, level="Error")
     
-  def fatal(self, error: Exception, msg: str | None="") -> None:
-    self.newEntry(f"{error}: {msg}", "Fatal")
+  def fatal(self, error: Exception, msg: str | None="") -> Never:
+    self.newEntry(f"{error}: {msg}", level="Fatal")
     raise error
+  
+  def final(self, msg: str | None="") -> None:
+    self.newEntry(msg, level="Fatal", _exit=True)
