@@ -3,7 +3,8 @@
 if __name__ == "__main__":
   raise RuntimeError("`logger.py` is not meant to be run unless imported")
 
-import time
+from datetime import datetime
+from time import time
 from pathlib import Path
 from typing import Literal
 
@@ -11,7 +12,7 @@ class logError(Exception):
   """Base Class for all logging related Errors."""
 
 def get_path() -> str:
-  ct = str(time.time()).replace(".", "")
+  ct = str(time()).replace(".", "")
   try:
     with open(f"log_{ct}.log", "r", errors="strict") as file: 
       file.close()
@@ -36,7 +37,8 @@ class logger():
     """Log to existing log, or create a new one and log to that one if needed."""
     try:
       with open(self.LOG_PATH, "a", errors="strict") as file:
-        file.write(f"{time.strftime("%H:%M:%S", time.localtime())} [{level}]: {msg}\n")
+        now = datetime.now()
+        file.write(f"{formatted_time = now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
     except NameError:
       self.__init__()
       self.newEntry(msg, level)
