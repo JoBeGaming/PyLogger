@@ -38,7 +38,7 @@ class logger():
     try:
       with open(self.LOG_PATH, "a", errors="strict") as file:
         now = datetime.now()
-        file.write(f"{formatted_time = now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
+        file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
     except NameError:
       self.__init__()
       self.newEntry(msg, level)
