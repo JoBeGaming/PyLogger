@@ -3,7 +3,7 @@ A Python Logger, made as simple as possible, whilst only using Python.
 Each new Logger Instance can get new unique Attributes, allowing for Logs that do stuff for Internal and External needs.
 
 ## Functions:
-- get_path: Return a newly generated path, using the `dir` specified beforehand.
+- get_path: Return a newly generated file-path, using the `dir` specified beforehand. This path will always be random, and incase it exists, we try to generate one again.
 
 ## Classes:
 - logError: Generic Error that happens whilst Logging.
