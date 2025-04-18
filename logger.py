@@ -15,7 +15,7 @@ class logError(Exception):
 def get_path() -> str:
   # Generate a random string, consisting
   # of the current time as a Hex String
-  ct = str(hex((time()).replace(".", ""))
+  ct = str(hex(int(str(time()).replace(".", ""))))
   try:
     with open(f"log_{ct}.log", "r", errors="strict") as file: 
       file.close()
