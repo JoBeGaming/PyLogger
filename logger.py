@@ -115,8 +115,8 @@ class logger(BaseLogger):
     levels = Literal["Debug", "Info", "Error", "Fatal"]
 
     def compile(log: logger, level: logger.levels, msg: str) -> str:
-    now = datetime.now()
-    file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
+        now = datetime.now()
+        file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
 
     def decompile(log: logger, line: str) -> tuple[str, str, str]]:
         time = line.split()[0]
