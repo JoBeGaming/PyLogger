@@ -41,12 +41,11 @@ class BaseLogger():
       log.__init__(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
     log.newEntry(f"Initiated file as {self.PATH}", level="Info")
   
-  def newEntry(log: BaseLogger, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug", *, exit_: bool=False) -> None:
+  def newEntry(log: BaseLogger, msg: str, level: str = "Debug", *, exit_: bool=False) -> None:
     """Log to existing log, or create a new one and log to that one if needed."""
     try:
       with open(log.PATH "a", errors="strict") as file:
-        now = datetime.now()
-        file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
+        file.write(super().compile(msg, level))
         if exit_:
           exit(f"{msg}. Full log at {log.PATH}")
     except NameError:
@@ -67,9 +66,9 @@ class BaseLogger():
       print(f"Log {log} at {log.PATH}")
       for time, level, msg in log.get_contents():
           if not level in ignore:
-              print(super.compile(time, level, msg), file=file)
+              print(super().compile(time, level, msg), file=file)
   
-  def delAll(log: logger) -> None:
+  def delAll(log: BaseLogger) -> None:
     """Delete all logs, except the latest."""
     #TODO: Filter thru the parents if needed (count slashes when defining path)
     directory = Path(log.PATH).parent
@@ -77,7 +76,7 @@ class BaseLogger():
       if file.is_file() and file.suffix == ".log" and file.name != log.PATH:
         file.unlink()
       
-  def newPath(log: logger, path: str) -> None:
+  def newPath(log: BaseLogger, path: str) -> None:
     log.__init__(path)
             
   def extensiveError(self, obj) -> None:
@@ -112,4 +111,16 @@ class BaseLogger():
           if not attrnin cls.__dict__:
               raise TypeError("Cannot create logger without '{attr}' method")
           
+class logger(BaseLogger):
+    levels = Literal["Debug", "Info", "Error", "Fatal"]
+
+    def compile(log: logger, level: logger.levels, msg: str) -> str:
+    now = datetime.now()
+    file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
+
+    def decompile(log: logger, line: str) -> tuple[str, str, str]]:
+        time = line.split()[0]
+        level = line.removeprefix(f"{time}[").split("]")[0]
+        msg = line.removeprefix(f"{time}[{level}]:")
+        return (time, level, msg)
       
