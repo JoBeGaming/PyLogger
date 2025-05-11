@@ -1,5 +1,6 @@
 # Logger
 # TODO: log.BASE_PATH, rights, make exit_ be Error / None
+# TODO: Custom format templates -> custom format and decompile functions
 
 if __name__ == "__main__":
   raise RuntimeError("`logger.py` is not meant to be run unless imported")
@@ -25,9 +26,9 @@ def get_path() -> str:
   except FileNotFoundError:
     return f"log_{ct}.log"
 
-class logger():
+class BaseLogger():
   
-  def __init__(log: logger, new_path: str = "") -> None: 
+  def __init__(log: BaseLogger, new_path: str = "") -> None: 
     """Initiate a new log at `logs/`, except another path is given"""
     if not new_path:
       new_path = rf"logs/{get_path()}"
@@ -40,7 +41,7 @@ class logger():
       log.__init__(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
     log.newEntry(f"Initiated file as {self.PATH}", level="Info")
   
-  def newEntry(log: logger, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug", *, exit_: bool=False) -> None:
+  def newEntry(log: BaseLogger, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug", *, exit_: bool=False) -> None:
     """Log to existing log, or create a new one and log to that one if needed."""
     try:
       with open(log.PATH "a", errors="strict") as file:
@@ -52,11 +53,21 @@ class logger():
       log.__init__()
       log.newEntry(msg, level, exit_=exit_)
   
-  def dump(log: logger, file: Any = sys.sdtout) -> None:
+  def get_contents(log: BaseLogger) -> tuple[str, str, str]:
+      contents: tuple[tuple[str, str, str], ...] = ()
+      with open(log.PATH, "r") as file:
+          for line in file.readlines():
+              contents += (super().decompile(line),)
+      return contents
+
+  def get_time(log: BaseLogger, time: ..., op: str = ">=") -> str:
+      ... #TODO: Check if chars of op are =<>!, and Len == 2
+
+  def dump(log: BaseLogger, file: Any = sys.sdtout, ignore: tuple[level, ...] = ()) -> None:
       print(f"Log {log} at {log.PATH}")
-      with open(log.PATH, "r") as f:
-          for line in f.readlines():
-              print(line, file=file)
+      for time, level, msg in log.get_contents():
+          if not level in ignore:
+              print(super.compile(time, level, msg), file=file)
   
   def delAll(log: logger) -> None:
     """Delete all logs, except the latest."""
@@ -92,3 +103,13 @@ class logger():
   
   def final(self, msg: str | None="") -> None:
     self.newEntry(msg, level="Fatal", _exit=True)
+
+
+  def __init_subclass__(cls, **kwargs):
+      if not cls is BaseLogger:
+          raise TypeError("Cannot subclass logger {cls}")
+      for attr in {"compile", "decompile"}:
+          if not attrnin cls.__dict__:
+              raise TypeError("Cannot create logger without '{attr}' method")
+          
+      
