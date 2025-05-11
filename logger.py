@@ -1,4 +1,5 @@
 # Logger
+# TODO: log.BASE_PATH, rights, make exit_ be Error / None
 
 if __name__ == "__main__":
   raise RuntimeError("`logger.py` is not meant to be run unless imported")
@@ -8,6 +9,7 @@ from time import time
 from pathlib import Path
 from typing import Literal, Never
 from os import path
+import sys
 
 class logError(Exception):
   """Base Class for all logging related Errors."""
@@ -25,47 +27,47 @@ def get_path() -> str:
 
 class logger():
   
-  def __init__(self, newPath: str | None=None) -> None: 
+  def __init__(log: logger, new_path: str = "") -> None: 
     """Initiate a new log at `logs/`, except another path is given"""
-    if newPath is None:
-      newPath = rf"logs/{get_path()}"
-    self.LOG_PATH = f"{newPath}.log"
+    if not new_path:
+      new_path = rf"logs/{get_path()}"
+    log.PATH = f"{new_path.removesuffix('.log')}.log"
     try:  
-      with open(self.LOG_PATH, "x", errors="strict"):
+      with open(log.PATH, "x", errors="strict"):
         pass
     except FileNotFoundError:
       backslash = "\\"
-      self.__init__(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
-    self.newEntry(f"Initiated file as {self.LOG_PATH}", level="Info")
+      log.__init__(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
+    log.newEntry(f"Initiated file as {self.PATH}", level="Info")
   
-  def newEntry(self, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug", *, _exit: bool=False) -> None:
+  def newEntry(log: logger, msg: str, level: Literal["Debug", "Info", "Error", "Fatal"]="Debug", *, exit_: bool=False) -> None:
     """Log to existing log, or create a new one and log to that one if needed."""
     try:
-      with open(self.LOG_PATH, "a", errors="strict") as file:
+      with open(log.PATH "a", errors="strict") as file:
         now = datetime.now()
         file.write(f"{now.strftime("%H:%M:%S.") + f"{now.microsecond // 1000:03d}"} [{level}]: {msg}\n")
-        if _exit:
-          exit(f"{msg}. Full log at {self.currentPath()}")
+        if exit_:
+          exit(f"{msg}. Full log at {log.PATH}")
     except NameError:
-      self.__init__()
-      self.newEntry(msg, level)
+      log.__init__()
+      log.newEntry(msg, level, exit_=exit_)
   
-  def currentPath(self) -> str:
-    """Return the current Path of the log."""
-    try:
-      return self.LOG_PATH
-    except NameError: 
-      raise logError
+  def dump(log: logger, file: Any = sys.sdtout) -> None:
+      print(f"Log {log} at {log.PATH}")
+      with open(log.PATH, "r") as f:
+          for line in f.readlines():
+              print(line, file=file)
   
-  def delAll(self) -> None:
+  def delAll(log: logger) -> None:
     """Delete all logs, except the latest."""
-    directory = Path(self.LOG_PATH).parent
+    #TODO: Filter thru the parents if needed (count slashes when defining path)
+    directory = Path(log.PATH).parent
     for file in directory.iterdir():
-      if file.is_file() and file.suffix == ".log" and file.name != self.LOG_PATH:
+      if file.is_file() and file.suffix == ".log" and file.name != log.PATH:
         file.unlink()
       
-  def newPath(self, newPath: str) -> None:
-    self.__init__(newPath)
+  def newPath(log: logger, path: str) -> None:
+    log.__init__(path)
             
   def extensiveError(self, obj) -> None:
     self.newEntry(f"{obj}, traceback to {obj.__traceback__.tb_frame}", level="Error")
