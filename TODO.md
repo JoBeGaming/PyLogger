@@ -1,0 +1,1 @@
+- [ ] Add `__add__` to merge two logs
