@@ -109,7 +109,7 @@ class BaseLogger():
           raise TypeError("Cannot subclass logger {cls}")
       for attr in {"compile", "decompile"}:
           if not attrnin cls.__dict__:
-              raise TypeError("Cannot create logger without '{attr}' method")
+              raise TypeError("BaseLogger subclass must define {attr}")
           
 class logger(BaseLogger):
     levels = Literal["Debug", "Info", "Error", "Fatal"]
