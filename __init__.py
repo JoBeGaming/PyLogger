@@ -1,6 +1,4 @@
-from logger import *
-
-__doc__: str = """
+"""
 A Python Logger, made as simple as possible, whilst only using Python.
 Each new Logger Instance can get new unique Attributes, allowing for Logs for Internal and External needs.
 
@@ -22,6 +20,8 @@ Classes:
   * error: Append the `message` to the current log, using the Error Level.
   * Fatal: Append the `message` to the current log, using the Fatal Level, then exit.
 """ 
+
+from logger import * # type: ignore[import-not-found]
 
 __all__: list[str] = [
   "logError",
