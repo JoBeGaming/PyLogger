@@ -107,11 +107,12 @@ class BaseLogger():
             if not level in ignore:
                 print(log.compile(time=time, level=level, msg=msg).removesuffix("\n\n"), file=file)
 
+    # TODO
     def clear(log: BaseLogger, *, keep: tuple[str, ...] = (), time: str = "", op: str = "") -> None:
         if not keep and not time and not op:
             with open(log.PATH, "w"): 
                 pass
-        else: 
+        else:
             ...
 
     def delAll(log: BaseLogger) -> None:
@@ -264,3 +265,20 @@ class SafeLogger:
                 yield None
             else:
                 yield keys
+
+n = SafeLogger(get_path())
+key_g = n.request_keys()
+admin_key = next(key_g)
+print(admin_key)
+print(next(key_g))
+print(next(key_g))
+print(next(key_g))
+n.k = admin_key
+print(next(key_g))
+
+log = logger()
+for i in range(1000):
+    log.newEntry("hi", "Info")
+log.dump()
+log.clear()
+log.delAll()
