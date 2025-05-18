@@ -1,12 +1,12 @@
 # Logger
-# TODO: log.BASE_PATH, rights, make exit_ be Error / None
-# TODO: Custom format templates -> custom format and decompile functions
+# TODO: log.BASE_PATH, rights
+
+# pyright: reportSelfClsParameterName=false
 
 from datetime import datetime
 from time import time
 from pathlib import Path
-from typing import Literal, Never, TextIO
-from os import path
+from typing import Literal, Never, TextIO, override, Any, Generator
 import sys
 
 class logError(Exception):
@@ -26,36 +26,36 @@ def get_path() -> str:
 class BaseLogger():
 
     # These are defined as a kind of stub, so Mypy doesn't complain
-    def compile(log: BaseLogger, *args, **kwargs) -> str: 
+    def compile(log: BaseLogger, **kwargs: Any) -> str: 
         return ""
 
-    def decompile(log: BaseLogger, *args, **kwargs) -> tuple[str, str, str]: 
+    def decompile(log: BaseLogger, line: str) -> tuple[str, str, str]: 
         return ("", "", "")
 
     def __init__(log: BaseLogger, new_path: str = "") -> None: 
         """Initiate a new log at `logs/`, except another path is given"""
+        log.__init(new_path)
+
+    def __init(log: BaseLogger, new_path: str = "") -> None:
         if not new_path:
             new_path = rf"logs/{get_path()}"
         log.PATH = f"{new_path.removesuffix('.log')}.log"
         try:  
             with open(log.PATH, "x", errors="strict"):
                 pass
+            log.newEntry(msg=f"Initiated file as {log.PATH}", level="Info")
         except FileNotFoundError:
-            #TODO make it not call init
             backslash = "\\"
-            log.__init__(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
-        log.newEntry(msg=f"Initiated file as {log.PATH}", level="Info")
+            log.__init(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
 
-    def newEntry(log: BaseLogger, msg: str, level: str, *, exit_: bool=False) -> None:
+    def newEntry(log: BaseLogger, msg: str, level: str) -> None:
         """Log to existing log, or create a new one and log to that one if needed."""
         try:
             with open(log.PATH, "a", errors="strict") as file:
                 file.write(log.compile(msg=msg, level=level))
-            if exit_:
-                exit(f"{msg}. Full log at {log.PATH}")
         except NameError:
-            log.__init__()
-            log.newEntry(msg, level, exit_=exit_)
+            log.__init()
+            log.newEntry(msg, level)
 
     def get_contents(log: BaseLogger) -> tuple[tuple[str, str, str], ...]:
         contents: tuple[tuple[str, str, str], ...] = ()
@@ -77,9 +77,9 @@ class BaseLogger():
             filter_time = filter_time.replace(".", "")
             index = 0
             for char in time:
-                if int(char) < filter_time[index]:
+                if int(char) < int(filter_time[index]):
                     return True
-                elif int(char) > filter_time[index]:
+                elif int(char) > int(filter_time[index]):
                     return False
             return False
         else:
@@ -98,7 +98,7 @@ class BaseLogger():
         contents: tuple[tuple[str, str, str], ...] = ()
         for time, level, msg in log.get_contents():
             if log._compare(time, filter_time, op):
-                contents += (time, level, msg)
+                contents += ((time, level, msg),)
         return contents
 
     def dump(log: BaseLogger, file: TextIO = sys.stdout, ignore: tuple[str, ...] = ()) -> None:
@@ -107,45 +107,51 @@ class BaseLogger():
             if not level in ignore:
                 print(log.compile(time=time, level=level, msg=msg).removesuffix("\n\n"), file=file)
 
-    def clear(log: BaseLogger, keep: tuple[str, ...], time: str, op: str) -> None:
-        ...
+    def clear(log: BaseLogger, *, keep: tuple[str, ...] = (), time: str = "", op: str = "") -> None:
+        if not keep and not time and not op:
+            with open(log.PATH, "w"): 
+                pass
+        else: 
+            ...
 
     def delAll(log: BaseLogger) -> None:
         """Delete all logs, except the latest."""
         #TODO: Filter thru the parents if needed (count slashes when defining path)
+        #TODO this deletes current log too lol
         directory = Path(log.PATH).parent
         for file in directory.iterdir():
             if file.is_file() and file.suffix == ".log" and file.name != log.PATH:
                 file.unlink()
 
     def newPath(log: BaseLogger, path: str) -> None:
-        log.__init__(path)
+        log.__init(path)
 
-    def extensiveError(self, obj) -> None:
-        self.newEntry(f"{obj}, traceback to {obj.__traceback__.tb_frame}", level="Error")
-        self.newEntry(f"Traceback object at {obj.__traceback__}", level="Error")
-        self.newEntry(f"TB Lasti: {obj.__traceback__.tb_lasti}", level="Error")
-        self.newEntry(f"TB Lineno: {obj.__traceback__.tb_lineno}", level="Error")
-        self.newEntry(f"TB Next: {obj.__traceback__.tb_next}", level="Error")
-        self.newEntry(f"Exiting Program", level="Fatal")
+    def extensiveError(log, obj: BaseException | Exception) -> None: #TODO
+        tb = obj.__traceback__
+        log.newEntry(f"{obj}, traceback to {getattr(tb, "tb_frame", "-")}", level="Error")
+        log.newEntry(f"Traceback object at {tb}", level="Error")
+        log.newEntry(f"TB Lasti: {getattr(tb, "tb_lasti", "-")}", level="Error")
+        log.newEntry(f"TB Lineno: {getattr(tb, "tb_lineno", "-")}", level="Error")
+        log.newEntry(f"TB Next: {getattr(tb, "tb_next", "-")}", level="Error")
+        log.newEntry(f"Exiting Program", level="Fatal")
 
-    def debug(self, msg: str) -> None:
-        self.newEntry(msg, level="Debug")
+    def debug(log, msg: str) -> None:
+        log.newEntry(msg, level="Debug")
 
-    def info(self, msg: str) -> None:
-        self.newEntry(msg, level="Info")
+    def info(log, msg: str) -> None:
+        log.newEntry(msg, level="Info")
 
-    def error(self, msg: str) -> None:
-        self.newEntry(msg, level="Error")
+    def error(log, msg: str) -> None:
+        log.newEntry(msg, level="Error")
 
-    def fatal(self, error: Exception, msg: str) -> Never:
-        self.newEntry(f"{error}: {msg}", level="Fatal")
+    def fatal(log, error: Exception, msg: str) -> Never:
+        log.newEntry(f"{error}: {msg}", level="Fatal")
         raise error
 
-    def final(self, msg: str) -> None:
-        self.newEntry(msg, level="Fatal", exit_=True)
+    def current_path(log) -> str:
+        return log.PATH
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: dict[str, Any]):
         for attr in {"compile", "decompile"}:
             if not attr in cls.__dict__:
                 raise TypeError(f"BaseLogger subclass must define {attr}")
@@ -153,12 +159,14 @@ class BaseLogger():
 class logger(BaseLogger):
     levels = Literal["Debug", "Info", "Error", "Fatal"]
 
-    def compile(log: logger, /, *, time: str = "", level: logger.levels, msg: str) -> str:
+    @override
+    def compile(log: logger, /, *, msg: str = "", time: str = "", level: logger.levels = "Debug") -> str:
         if not time:
             now = datetime.now()
             time = f"{now.strftime('%H:%M:%S.')}" + f"{now.microsecond // 1000:03d}"
         return f"{time} [{level}]: {msg}\n"
 
+    @override
     def decompile(log: logger, line: str) -> tuple[str, str, str]:
         time = line.split()[0]
         level = line.removeprefix(f"{time} [").split("]")[0]
@@ -206,7 +214,7 @@ class SafeLogger:
             yield total
             yield total
 
-    def stamp(log: SafeLogger, key: str, generator, *, additional: int = 0):
+    def stamp(log: SafeLogger, key: str, generator: Generator[int], *, additional: int = 0) -> Generator[tuple[str, int]]:
         total_additional = 0
         while True:
             if not additional:
@@ -242,8 +250,8 @@ class SafeLogger:
             subkeys: tuple[str, ...] = ()
             for _ in range(repeat):
                 import secrets
-                key: str = secrets.token_hex(64) + log.getseed(access_type)
-                key = next(log.stamp(key, global_total))
+                key_: str = secrets.token_hex(64) + log.getseed(access_type)
+                key = next(log.stamp(key_, global_total))
                 lt = key[1]
                 gt = next(global_total)
                 assert int(key[0].split("-")[-1], base=16) == gt == lt == total
@@ -272,3 +280,4 @@ for i in range(1000):
     log.newEntry("hi", "Info")
 log.dump()
 log.clear()
+log.delAll()
