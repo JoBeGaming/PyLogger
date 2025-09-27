@@ -4,7 +4,7 @@ Each new Logger Instance can get new unique Attributes, allowing for Logs for In
 
 Functions:
 * get_path: Return a newly generated file-path, using the `dir` specified beforehand. This path will 
-            always be random, and incase it exists, we try to generate one again.
+            always be random, and in case it exists, we try to generate one again.
 
 Classes:
 * logError: Generic Error that happens whilst Logging.
@@ -21,10 +21,12 @@ Classes:
   * Fatal: Append the `message` to the current log, using the Fatal Level, then exit.
 """ 
 
-from logger import * # type: ignore[import-not-found]
+
+from logger import *
+
 
 __all__: list[str] = [
-  "logError",
-  "get_path"
-  "logger"
+    "logError",
+    "get_path"
+    "logger"
 ]

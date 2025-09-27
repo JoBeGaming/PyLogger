@@ -3,14 +3,19 @@
 
 # pyright: reportSelfClsParameterName=false
 
+import sys
+
+from collections.abc import Generator
 from datetime import datetime
 from time import time
 from pathlib import Path
-from typing import Literal, Never, TextIO, override, Any, Generator
-import sys
+from time import time
+from typing import Literal, Never, TextIO, override, Any
+
 
 class logError(Exception):
     """Base Class for all logging related Errors."""
+
 
 def get_path() -> str:
     # Generate a random string, consisting
@@ -22,6 +27,7 @@ def get_path() -> str:
             return get_path()
     except FileNotFoundError:
         return f"log_{ct}.log"
+
 
 class BaseLogger():
 
@@ -40,6 +46,7 @@ class BaseLogger():
         if not new_path:
             new_path = rf"logs/{get_path()}"
         log.PATH = f"{new_path.removesuffix('.log')}.log"
+
         try:  
             with open(log.PATH, "x", errors="strict"):
                 pass
@@ -62,12 +69,14 @@ class BaseLogger():
         with open(log.PATH, "r") as file:
             for line in file.readlines():
                 contents += (log.decompile(line),)
+
         return contents
 
     #TODO make str of op be literals
     def _compare(log: BaseLogger, time: str, filter_time: str, op: str) -> bool:
         if len(op) == 2:
             return log._compare(time, filter_time, op[0]) or time == filter_time
+
         if op[0] == "=":
             return time == filter_time
         elif op[0] == "!":
@@ -76,11 +85,13 @@ class BaseLogger():
             time = time.replace(".", "")
             filter_time = filter_time.replace(".", "")
             index = 0
+
             for char in time:
                 if int(char) < int(filter_time[index]):
                     return True
                 elif int(char) > int(filter_time[index]):
                     return False
+
             return False
         else:
             return not log._compare(time, filter_time, "<") and not time == filter_time
@@ -99,6 +110,7 @@ class BaseLogger():
         for time, level, msg in log.get_contents():
             if log._compare(time, filter_time, op):
                 contents += ((time, level, msg),)
+
         return contents
 
     def dump(log: BaseLogger, file: TextIO = sys.stdout, ignore: tuple[str, ...] = ()) -> None:
