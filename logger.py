@@ -7,7 +7,6 @@ import sys
 
 from collections.abc import Generator
 from datetime import datetime
-from time import time
 from pathlib import Path
 from time import time
 from typing import Literal, Never, TextIO, override, Any
@@ -39,7 +38,10 @@ class BaseLogger():
         return ("", "", "")
 
     def __init__(log: BaseLogger, new_path: str = "") -> None: 
-        """Initiate a new log at `logs/`, except another path is given"""
+        """
+        Initiate a new log at `logs/`, except another path is given.
+        """
+
         log.__init(new_path)
 
     def __init(log: BaseLogger, new_path: str = "") -> None:
@@ -56,7 +58,10 @@ class BaseLogger():
             log.__init(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
 
     def newEntry(log: BaseLogger, msg: str, level: str) -> None:
-        """Log to existing log, or create a new one and log to that one if needed."""
+        """
+        Log to existing log, or create a new one and log to that one if needed.
+        """
+
         try:
             with open(log.PATH, "a", errors="strict") as file:
                 file.write(log.compile(msg=msg, level=level))
@@ -93,6 +98,7 @@ class BaseLogger():
                     return False
 
             return False
+
         else:
             return not log._compare(time, filter_time, "<") and not time == filter_time
 
@@ -106,6 +112,7 @@ class BaseLogger():
             "!="
         }:
             raise TypeError(f"invalid operation {op}, expected comparison")
+
         contents: tuple[tuple[str, str, str], ...] = ()
         for time, level, msg in log.get_contents():
             if log._compare(time, filter_time, op):
