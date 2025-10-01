@@ -52,12 +52,12 @@ class BaseLogger():
         try:  
             with open(log.PATH, "x", errors="strict"):
                 pass
-            log.newEntry(msg=f"Initiated file as {log.PATH}", level="Info")
+            log.new_entry(msg=f"Initiated file as {log.PATH}", level="Info")
         except FileNotFoundError:
             backslash = "\\"
             log.__init(rf"{str(__file__).replace(backslash, "/").removesuffix("logger.py")}logs/{get_path().removesuffix(".log")}")
 
-    def newEntry(log: BaseLogger, msg: str, level: str) -> None:
+    def new_entry(log: BaseLogger, msg: str, level: str) -> None:
         """
         Log to existing log, or create a new one and log to that one if needed.
         """
@@ -67,7 +67,7 @@ class BaseLogger():
                 file.write(log.compile(msg=msg, level=level))
         except NameError:
             log.__init()
-            log.newEntry(msg, level)
+            log.new_entry(msg, level)
 
     def get_contents(log: BaseLogger) -> tuple[tuple[str, str, str], ...]:
         contents: tuple[tuple[str, str, str], ...] = ()
@@ -134,7 +134,7 @@ class BaseLogger():
         else:
             ...
 
-    def delAll(log: BaseLogger) -> None:
+    def del_all(log: BaseLogger) -> None:
         """Delete all logs, except the latest."""
         #TODO: Filter thru the parents if needed (count slashes when defining path)
         #TODO this deletes current log too lol
@@ -143,29 +143,29 @@ class BaseLogger():
             if file.is_file() and file.suffix == ".log" and file.name != log.PATH:
                 file.unlink()
 
-    def newPath(log: BaseLogger, path: str) -> None:
+    def new_path(log: BaseLogger, path: str) -> None:
         log.__init(path)
 
-    def extensiveError(log, obj: BaseException | Exception) -> None: #TODO
+    def extensive_error(log, obj: BaseException | Exception) -> None: #TODO
         tb = obj.__traceback__
-        log.newEntry(f"{obj}, traceback to {getattr(tb, "tb_frame", "-")}", level="Error")
-        log.newEntry(f"Traceback object at {tb}", level="Error")
-        log.newEntry(f"TB Lasti: {getattr(tb, "tb_lasti", "-")}", level="Error")
-        log.newEntry(f"TB Lineno: {getattr(tb, "tb_lineno", "-")}", level="Error")
-        log.newEntry(f"TB Next: {getattr(tb, "tb_next", "-")}", level="Error")
-        log.newEntry(f"Exiting Program", level="Fatal")
+        log.new_entry(f"{obj}, traceback to {getattr(tb, "tb_frame", "-")}", level="Error")
+        log.new_entry(f"Traceback object at {tb}", level="Error")
+        log.new_entry(f"TB Lasti: {getattr(tb, "tb_lasti", "-")}", level="Error")
+        log.new_entry(f"TB Lineno: {getattr(tb, "tb_lineno", "-")}", level="Error")
+        log.new_entry(f"TB Next: {getattr(tb, "tb_next", "-")}", level="Error")
+        log.new_entry(f"Exiting Program", level="Fatal")
 
     def debug(log, msg: str) -> None:
-        log.newEntry(msg, level="Debug")
+        log.new_entry(msg, level="Debug")
 
     def info(log, msg: str) -> None:
-        log.newEntry(msg, level="Info")
+        log.new_entry(msg, level="Info")
 
     def error(log, msg: str) -> None:
-        log.newEntry(msg, level="Error")
+        log.new_entry(msg, level="Error")
 
     def fatal(log, error: Exception, msg: str) -> Never:
-        log.newEntry(f"{error}: {msg}", level="Fatal")
+        log.new_entry(f"{error}: {msg}", level="Fatal")
         raise error
 
     def current_path(log) -> str:
@@ -297,7 +297,7 @@ print(next(key_g))
 
 log = logger()
 for i in range(1000):
-    log.newEntry("hi", "Info")
+    log.new_entry("hi", "Info")
 log.dump()
 log.clear()
-log.delAll()
+log.del_all()
